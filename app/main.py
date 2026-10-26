@@ -1,3 +1,4 @@
+
 import hashlib
 import hmac
 import json
@@ -16,15 +17,31 @@ app = FastAPI(title="Payments webhook service")
 
 
 def sign(payload: dict) -> str:
-    return hmac.new(WEBHOOK_SECRET.encode(), json.dumps(payload).encode(), hashlib.sha256).hexdigest()
+    return hmac.new(
+        WEBHOOK_SECRET.encode(),
+        json.dumps(payload).encode(),
+        hashlib.sha256,
+    ).hexdigest()
 
 
 @app.post("/webhooks/payments")
-async def payments_webhook(request: Request, x_signature: str = Header(default=None)):
+async def payments_webhook(
+    request: Request,
+    x_signature: str = Header(default=None),
+):
     payload = await request.json()
 
-    if x_signature and x_signature != sign(payload):
-        raise HTTPException(status_code=401, detail="bad signature")
+    # Verify that the webhook signature exists and is valid.
+    expected_signature = sign(payload)
+
+    if not x_signature or not hmac.compare_digest(
+        x_signature,
+        expected_signature,
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail="bad signature",
+        )
 
     logger.info("received event %s", payload)
 
@@ -36,7 +53,14 @@ async def payments_webhook(request: Request, x_signature: str = Header(default=N
             send_receipt(data["customer_email"], data["amount"])
         except Exception:
             pass
-        save_order(payload["id"], data["payment_id"], data["customer_email"], data["amount"])
+
+        save_order(
+            payload["id"],
+            data["payment_id"],
+            data["customer_email"],
+            data["amount"],
+        )
+
     elif event_type == "payment.refunded":
         mark_refunded(data["payment_id"])
 
