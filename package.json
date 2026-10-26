@@ -1,0 +1,20 @@
+{
+  "name": "payment-webhook-assessment",
+  "version": "1.0.0",
+  "description": "Receives payment events from our payment provider, saves an order, and emails the customer a receipt.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}
