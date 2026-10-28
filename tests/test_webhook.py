@@ -40,3 +40,13 @@ def test_wrong_signature_rejected():
     event = make_event()
     r = client.post("/webhooks/payments", json=event, headers={"X-Signature": "wrong"})
     assert r.status_code == 401
+
+def test_missing_signature_rejected():
+    event = make_event()
+
+    response = client.post(
+        "/webhooks/payments",
+        json=event,
+    )
+
+    assert response.status_code == 401
